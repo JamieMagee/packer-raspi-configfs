@@ -1,22 +1,32 @@
 {
+  "variables": {
+    "wifi_ssid": "{{ env `WIFI_SSID`}}",
+    "wifi_password": "{{ env `WIFI_PASSWORD`}}",
+    "wifi_country": "{{ env `WIFI_COUNTRY`}}"
+  },
   "builders": [
     {
       "type": "arm-image",
       "iso_url": "http://director.downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2018-11-15/2018-11-13-raspbian-stretch-lite.zip",
       "iso_checksum_type": "sha256",
-      "iso_checksum": "47ef1b2501d0e5002675a50b6868074e693f78829822eef64f3878487953234d"
+      "iso_checksum": "47ef1b2501d0e5002675a50b6868074e693f78829822eef64f3878487953234d",
+      "name": "raspbian-configfs"
     }
   ],
   "provisioners": [
     {
       "type": "shell",
-      "inline": [
-        "sudo apt-get install ansible -y"
-      ]
+      "inline": ["sudo apt-get install ansible -y"]
     },
     {
       "type": "ansible-local",
-      "playbook_file": "./playbook.yml"
+      "playbook_file": "/vagrant/playbook.yml",
+      "role_paths": [
+        "/vagrant/roles/wifi"
+      ],
+      "extra_arguments": [
+        "--extra-vars \"wifi_ssid={{user `wifi_ssid`}} wifi_password={{user `wifi_password`}} wifi_country={{user `wifi_country`}}\""
+      ]
     }
   ]
 }

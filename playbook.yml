@@ -3,7 +3,11 @@
   become: yes
   gather_facts: yes
 
+  roles:
+    - { role: wifi }
+
   tasks:
     - name: Install latest system updates
       apt:
+        update_cache: yes
         upgrade: dist
