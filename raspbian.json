@@ -6,5 +6,17 @@
       "iso_checksum_type": "sha256",
       "iso_checksum": "47ef1b2501d0e5002675a50b6868074e693f78829822eef64f3878487953234d"
     }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo apt-get install ansible -y"
+      ]
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "./playbook.yml"
+    }
   ]
 }
