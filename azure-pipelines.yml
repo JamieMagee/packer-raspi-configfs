@@ -1,0 +1,55 @@
+trigger:
+  - master
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+steps:
+  - script: |
+      # Update the system
+      sudo apt-get update -qq
+
+      sudo DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
+      sudo apt-get install -y software-properties-common
+      sudo apt-get update
+      sudo apt-get install -y \
+        kpartx \
+        qemu-user-static
+
+      pushd /tmp
+
+      # Download and install packer
+      wget https://releases.hashicorp.com/packer/1.3.4/packer_1.3.4_linux_amd64.zip \
+      -q -O /tmp/packer_1.3.4_linux_amd64.zip
+      unzip -u packer_1.3.4_linux_amd64.zip
+      sudo mv packer /usr/local/bin
+
+      # Download and install golang
+      [[ -e /tmp/packer ]] && rm /tmp/packer
+      wget https://dl.google.com/go/go1.11.5.linux-amd64.tar.gz \
+      -q -O /tmp/go1.11.5.linux-amd64.tar.gz
+      tar -xzvf go1.11.5.linux-amd64.tar.gz
+      sudo mv go /usr/local
+
+      export GOROOT=/usr/local/go
+      export GOPATH=$HOME/go
+      export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+
+      # Download and install packer-builder-arm-image
+      git clone https://github.com/solo-io/packer-builder-arm-image
+      cd packer-builder-arm-image
+      go mod download
+      go build
+      sudo mv packer-builder-arm-image /usr/local/bin
+
+      popd
+    displayName: 'Install build dependencies'
+
+  - script: |
+      sudo packer build raspbian.json
+    displayName: 'Build image'
+
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: 'raspbian-configfs'
+      targetPath: output-arm-image
